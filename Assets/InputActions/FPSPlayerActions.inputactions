@@ -2,7 +2,7 @@
     "name": "FPSPlayerActions",
     "maps": [
         {
-            "name": "FPSPlayerActions",
+            "name": "FPSActor",
             "id": "6ab4752b-d545-45e8-b813-f609d7cb4b4b",
             "actions": [
                 {
@@ -17,6 +17,14 @@
                     "name": "Movement",
                     "type": "Value",
                     "id": "766310cf-0fcf-4169-a769-d9b859d4fb3d",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "CameraControls",
+                    "type": "Value",
+                    "id": "b1cfdec8-9ebb-471e-bb3f-7f356192a0c3",
                     "expectedControlType": "Vector2",
                     "processors": "",
                     "interactions": ""
@@ -88,6 +96,17 @@
                     "action": "Movement",
                     "isComposite": false,
                     "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "3a180210-33b4-4fa7-92d9-29bd866f8e65",
+                    "path": "<Mouse>/delta",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CameraControls",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         }
