@@ -122,6 +122,52 @@ public class @FPSPlayerActions : IInputActionCollection, IDisposable
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""WeaponActor"",
+            ""id"": ""76d23344-34b7-4a12-9114-2809f57661bd"",
+            ""actions"": [
+                {
+                    ""name"": ""Fire"",
+                    ""type"": ""Button"",
+                    ""id"": ""f13b0f48-2bc1-4183-b79d-e7cd2b8b0bff"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
+                },
+                {
+                    ""name"": ""MousePosition"",
+                    ""type"": ""Value"",
+                    ""id"": ""826e74f1-5465-4fd0-ade8-f416458cd6f4"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """"
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""f3020a0a-6aa7-4ae3-8084-edf296699438"",
+                    ""path"": ""<Mouse>/leftButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Fire"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""ba89544a-b207-45eb-99ff-b288553f6416"",
+                    ""path"": ""<Mouse>/position"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""MousePosition"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": []
@@ -131,6 +177,10 @@ public class @FPSPlayerActions : IInputActionCollection, IDisposable
         m_FPSActor_Jump = m_FPSActor.FindAction("Jump", throwIfNotFound: true);
         m_FPSActor_Movement = m_FPSActor.FindAction("Movement", throwIfNotFound: true);
         m_FPSActor_CameraControls = m_FPSActor.FindAction("CameraControls", throwIfNotFound: true);
+        // WeaponActor
+        m_WeaponActor = asset.FindActionMap("WeaponActor", throwIfNotFound: true);
+        m_WeaponActor_Fire = m_WeaponActor.FindAction("Fire", throwIfNotFound: true);
+        m_WeaponActor_MousePosition = m_WeaponActor.FindAction("MousePosition", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -225,10 +275,56 @@ public class @FPSPlayerActions : IInputActionCollection, IDisposable
         }
     }
     public FPSActorActions @FPSActor => new FPSActorActions(this);
+
+    // WeaponActor
+    private readonly InputActionMap m_WeaponActor;
+    private IWeaponActorActions m_WeaponActorActionsCallbackInterface;
+    private readonly InputAction m_WeaponActor_Fire;
+    private readonly InputAction m_WeaponActor_MousePosition;
+    public struct WeaponActorActions
+    {
+        private @FPSPlayerActions m_Wrapper;
+        public WeaponActorActions(@FPSPlayerActions wrapper) { m_Wrapper = wrapper; }
+        public InputAction @Fire => m_Wrapper.m_WeaponActor_Fire;
+        public InputAction @MousePosition => m_Wrapper.m_WeaponActor_MousePosition;
+        public InputActionMap Get() { return m_Wrapper.m_WeaponActor; }
+        public void Enable() { Get().Enable(); }
+        public void Disable() { Get().Disable(); }
+        public bool enabled => Get().enabled;
+        public static implicit operator InputActionMap(WeaponActorActions set) { return set.Get(); }
+        public void SetCallbacks(IWeaponActorActions instance)
+        {
+            if (m_Wrapper.m_WeaponActorActionsCallbackInterface != null)
+            {
+                @Fire.started -= m_Wrapper.m_WeaponActorActionsCallbackInterface.OnFire;
+                @Fire.performed -= m_Wrapper.m_WeaponActorActionsCallbackInterface.OnFire;
+                @Fire.canceled -= m_Wrapper.m_WeaponActorActionsCallbackInterface.OnFire;
+                @MousePosition.started -= m_Wrapper.m_WeaponActorActionsCallbackInterface.OnMousePosition;
+                @MousePosition.performed -= m_Wrapper.m_WeaponActorActionsCallbackInterface.OnMousePosition;
+                @MousePosition.canceled -= m_Wrapper.m_WeaponActorActionsCallbackInterface.OnMousePosition;
+            }
+            m_Wrapper.m_WeaponActorActionsCallbackInterface = instance;
+            if (instance != null)
+            {
+                @Fire.started += instance.OnFire;
+                @Fire.performed += instance.OnFire;
+                @Fire.canceled += instance.OnFire;
+                @MousePosition.started += instance.OnMousePosition;
+                @MousePosition.performed += instance.OnMousePosition;
+                @MousePosition.canceled += instance.OnMousePosition;
+            }
+        }
+    }
+    public WeaponActorActions @WeaponActor => new WeaponActorActions(this);
     public interface IFPSActorActions
     {
         void OnJump(InputAction.CallbackContext context);
         void OnMovement(InputAction.CallbackContext context);
         void OnCameraControls(InputAction.CallbackContext context);
+    }
+    public interface IWeaponActorActions
+    {
+        void OnFire(InputAction.CallbackContext context);
+        void OnMousePosition(InputAction.CallbackContext context);
     }
 }

@@ -18,6 +18,7 @@ public class CameraControls : MonoBehaviour
     }
     void Start()
     {
+        hideCursor();
         getCamera();
         getBody();
     }
@@ -25,7 +26,13 @@ public class CameraControls : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        updateCamera();
+        //updateCamera();
+    }
+
+    private void hideCursor()
+    {
+        Cursor.lockState = CursorLockMode.Locked;
+        //Cursor.visible = false;
     }
     //Grab camera from current object
     private void getCamera()
