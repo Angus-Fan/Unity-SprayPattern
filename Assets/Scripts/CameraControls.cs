@@ -5,11 +5,16 @@ using UnityEngine;
 
 public class CameraControls : MonoBehaviour
 {
+    public float additive;
     public float cameraSensitivity;
     private Camera fpsCam;
     private Transform bodyTransform;
     private FPSPlayerActions fpsPlayerActions;
+    public float verticalOffset = 0;
+    private float modifiedVertical = 0;
     private float xRotation = 0f;
+    public LayerMask rayCastIgnore;
+
     // Start is called before the first frame update
     void Awake()
     {
@@ -27,6 +32,7 @@ public class CameraControls : MonoBehaviour
     void Update()
     {
         //updateCamera();
+
     }
 
     private void hideCursor()
@@ -63,9 +69,59 @@ public class CameraControls : MonoBehaviour
     private void updateCamera()
     {
         Vector2 mousePositions = fpsPlayerActions.FPSActor.CameraControls.ReadValue<Vector2>() * Time.deltaTime * cameraSensitivity;
-        xRotation -= mousePositions.y;
+        xRotation = xRotation - mousePositions.y;
         xRotation = Mathf.Clamp(xRotation, -90f, 90f);
         fpsCam.transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
         bodyTransform.Rotate(Vector3.up * mousePositions.x);
     }
+
+    private void returnToCenter(float recoil)
+    {
+        StopAllCoroutines();
+        StartCoroutine(Lerp(recoil));
+    }
+    public void setCameraRecoil(float recoil)
+    {
+        //If you do not plan on using degrees than use the code block below
+        // which kicks up the camera by some value (recoil)
+        // additive = recoil;
+        // modifiedVertical = recoil;
+        // Vector2 mousePositions = fpsPlayerActions.FPSActor.CameraControls.ReadValue<Vector2>() * Time.deltaTime * cameraSensitivity;
+        // xRotation = xRotation - mousePositions.y - additive;
+        // xRotation = Mathf.Clamp(xRotation, -90f, 90f);
+        // fpsCam.transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+        // bodyTransform.Rotate(Vector3.up * mousePositions.x);
+
+
+        //Need it to be negative or it will go down isntead.
+        Quaternion newAngle = Quaternion.Euler(-recoil, 0, 0);
+        fpsCam.transform.localRotation = newAngle;
+        returnToCenter(recoil);
+    }
+
+    float lerpDuration = 1f;
+    float valueToLerp;
+
+    IEnumerator Lerp(float value)
+    {
+        float timeElapsed = 0;
+
+        while (timeElapsed < lerpDuration)
+        {
+            valueToLerp = Mathf.Lerp(value, 0, timeElapsed / lerpDuration);
+            Debug.Log(valueToLerp);
+            timeElapsed += Time.deltaTime;
+            Quaternion updateAngle = Quaternion.Euler(-valueToLerp, 0, 0);
+            fpsCam.transform.localRotation = updateAngle;
+            yield return null;
+        }
+
+
+        //Want to ensure that the lerp actual returns zero
+        //When finished, then go ahead and set the value to 0
+        valueToLerp = 0;
+        Quaternion endAngle = Quaternion.Euler(-valueToLerp, 0, 0);
+        fpsCam.transform.localRotation = endAngle;
+    }
+
 }

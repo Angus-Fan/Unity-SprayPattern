@@ -6,29 +6,35 @@ using System;
 public class FireArm : MonoBehaviour
 {
     // Start is called before the first frame update
-    public float testvaluesX;
-    public float testvaluesY;
-    public float testvaluesZ;
     private FPSPlayerActions weaponActor;
+    public LayerMask rayCastIgnore;
+    [Header("Fire Arm Stats")]
     public float fireRate;
+    public int maxRounds;
+    public int clipSize;
+    public float reloadTime;
+    public int currentClip;
+    [Header("Accuracy")]
     public float accuracyDecayTime;
     public float currentGunAccuracy;
     public float maxGunInnaccuracy;
     public float firstShotAccuracy;
+    public float maxKickUp;
+    public float cameraKick;
     private float nextTimeToFire = 0f;
     private float lastShotTime = 0;
-    public int maxRounds;
-    public int clipSize;
-    private int currentClip;
     private float timeBetweenLastShot;
 
     private Camera fpsCam;
+    private CameraControls cameraControls;
 
     private void Awake()
     {
         weaponActor = new FPSPlayerActions();
         weaponActor.WeaponActor.Enable();
         fpsCam = GetComponentInChildren<Camera>();
+        cameraControls = GetComponent<CameraControls>();
+
     }
     void Start()
     {
@@ -46,13 +52,14 @@ public class FireArm : MonoBehaviour
         float fireValue = weaponActor.WeaponActor.Fire.ReadValue<float>();
         bool fireHeld = Convert.ToBoolean(fireValue);
 
-        // if (currentClip > 0 && fireHeld && Time.time > nextTimeToFire)
-        // {
-        currentClip--;
-        nextTimeToFire = Time.time + 1f / fireRate;
-        lastShotTime = Time.time;
-        castRay();
-        //}
+        if (currentClip > 0 && fireHeld && Time.time > nextTimeToFire)
+        {
+            currentClip--;
+            nextTimeToFire = Time.time + 1f / fireRate;
+            lastShotTime = Time.time;
+            castRay();
+            kickCamera(5f);
+        }
 
     }
     private void checkAccuracyReset()
@@ -66,8 +73,8 @@ public class FireArm : MonoBehaviour
 
     private Vector3 nextShotVector()
     {
-        float shotX = UnityEngine.Random.Range(-.4f, .4f);
-        float shotY = UnityEngine.Random.Range(-.4f, .4f);
+        float shotX = UnityEngine.Random.Range(-firstShotAccuracy, firstShotAccuracy);
+        float shotY = UnityEngine.Random.Range(-firstShotAccuracy, firstShotAccuracy);
         return Quaternion.Euler(0, shotX, shotY) * fpsCam.transform.forward;
     }
 
@@ -91,11 +98,16 @@ public class FireArm : MonoBehaviour
         //     Debug.DrawLine(fpsCam.transform.position, hit.point, color, 2);
 
         // }
-        if (Physics.Raycast(ray2, out hit))
+        if (Physics.Raycast(ray2, out hit, 10000, ~rayCastIgnore))
         {
             Debug.DrawLine(fpsCam.transform.position, hit.point, color2, 2);
 
         }
 
+    }
+
+    private void kickCamera(float kick)
+    {
+        cameraControls.setCameraRecoil(kick);
     }
 }
