@@ -19,11 +19,16 @@ public class FireArm : MonoBehaviour
     public float currentGunAccuracy;
     public float maxGunInnaccuracy;
     public float firstShotAccuracy;
+    private int bulletIndex = 0;
     public float maxKickUp;
-    public float cameraKick;
+    public float cameraKick = 0f;
     private float nextTimeToFire = 0f;
     private float lastShotTime = 0;
     private float timeBetweenLastShot;
+    private float cameraOffset = 0f;
+
+    public float[] bulletRecoil;
+    public float[] bulletCameraKick;
 
     private Camera fpsCam;
     private CameraControls cameraControls;
@@ -34,6 +39,7 @@ public class FireArm : MonoBehaviour
         weaponActor.WeaponActor.Enable();
         fpsCam = GetComponentInChildren<Camera>();
         cameraControls = GetComponent<CameraControls>();
+        currentGunAccuracy = firstShotAccuracy;
 
     }
     void Start()
@@ -52,29 +58,65 @@ public class FireArm : MonoBehaviour
         float fireValue = weaponActor.WeaponActor.Fire.ReadValue<float>();
         bool fireHeld = Convert.ToBoolean(fireValue);
 
-        if (currentClip > 0 && fireHeld && Time.time > nextTimeToFire)
+        if (currentClip > 0 && fireHeld && (Time.time > nextTimeToFire))
         {
+
+            //Was shot fired above the accuracy innacuracy?
+            accuracyCalculator();
+            //First Shot Accuracy Code
             currentClip--;
             nextTimeToFire = Time.time + 1f / fireRate;
             lastShotTime = Time.time;
             castRay();
-            kickCamera(5f);
+            cameraKickCalculator();
+
         }
 
     }
-    private void checkAccuracyReset()
+    private void accuracyCalculator()
     {
+        bulletIndex++;
+
+        //If we waited long enough reset our gun to the default
         if (Time.time - lastShotTime > accuracyDecayTime)
         {
-            currentGunAccuracy = firstShotAccuracy;
+            resetAccuracy();
         }
+        else
+        {
+            // bulletInnacuracyIndex++;
+            // if (bulletInnacuracyIndex < bulletRecoil.Length)
+            // {
+            //     currentGunAccuracy += bulletRecoil[bulletInnacuracyIndex];
+            // }
+            // Mathf.Clamp(currentGunAccuracy, firstShotAccuracy, maxGunInnaccuracy);
+        }
+    }
+    private void cameraKickCalculator()
+    {
+        if (bulletIndex < bulletCameraKick.Length)
+        {
+            cameraKick += bulletCameraKick[bulletIndex];
+
+        }
+        Mathf.Clamp(cameraKick, 0, maxKickUp);
+
+        kickCamera(cameraKick);
 
     }
 
-    private Vector3 nextShotVector()
+
+    public void resetAccuracy()
     {
-        float shotX = UnityEngine.Random.Range(-firstShotAccuracy, firstShotAccuracy);
-        float shotY = UnityEngine.Random.Range(-firstShotAccuracy, firstShotAccuracy);
+        currentGunAccuracy = firstShotAccuracy;
+        cameraKick = 0;
+        bulletIndex = 0;
+    }
+
+    private Vector3 nextShotVector(float accuracy)
+    {
+        float shotX = UnityEngine.Random.Range(-accuracy, accuracy);
+        float shotY = UnityEngine.Random.Range(-accuracy, firstShotAccuracy);
         return Quaternion.Euler(0, shotX, shotY) * fpsCam.transform.forward;
     }
 
@@ -85,7 +127,7 @@ public class FireArm : MonoBehaviour
         //Ray ray = fpsCam.ScreenPointToRay(weaponActor.WeaponActor.MousePosition.ReadValue<Vector2>());
 
 
-        Vector3 nextShotVectorValue = nextShotVector();
+        Vector3 nextShotVectorValue = nextShotVector(currentGunAccuracy);
 
         Ray ray = new Ray(fpsCam.transform.position, fpsCam.transform.forward);
         Ray ray2 = new Ray(fpsCam.transform.position, nextShotVectorValue);

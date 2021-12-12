@@ -13,7 +13,6 @@ public class CameraControls : MonoBehaviour
     public float verticalOffset = 0;
     private float modifiedVertical = 0;
     private float xRotation = 0f;
-    public LayerMask rayCastIgnore;
 
     // Start is called before the first frame update
     void Awake()
@@ -109,7 +108,6 @@ public class CameraControls : MonoBehaviour
         while (timeElapsed < lerpDuration)
         {
             valueToLerp = Mathf.Lerp(value, 0, timeElapsed / lerpDuration);
-            Debug.Log(valueToLerp);
             timeElapsed += Time.deltaTime;
             Quaternion updateAngle = Quaternion.Euler(-valueToLerp, 0, 0);
             fpsCam.transform.localRotation = updateAngle;

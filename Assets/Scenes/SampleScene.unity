@@ -801,7 +801,14 @@ MonoBehaviour:
   currentGunAccuracy: 0
   maxGunInnaccuracy: 0
   firstShotAccuracy: 0
+  maxKickUp: 10
   cameraKick: 0
+  bulletRecoil: []
+  bulletCameraKick:
+  - 1
+  - 2
+  - 3
+  - 5
 --- !u!114 &2015441354
 MonoBehaviour:
   m_ObjectHideFlags: 0
